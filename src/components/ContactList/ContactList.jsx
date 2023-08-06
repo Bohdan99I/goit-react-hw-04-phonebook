@@ -6,11 +6,11 @@ import {
   ContactButton,
 } from './ContactList.styled';
 
-export const ContactList = ({ vilibleContact, deleteContact }) => {
+export const ContactList = ({ visibleContact, deleteContact }) => {
   return (
     <div>
       <ContactListWrapper>
-        {vilibleContact.map(contact => {
+        {visibleContact.map(contact => {
           return (
             <ContactListItem key={contact.id}>
               <div>

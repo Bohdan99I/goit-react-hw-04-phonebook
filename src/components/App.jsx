@@ -1,39 +1,28 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import { ContactForm } from './ContactForm/ContactForm';
 import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
 import { Wrapper, H2 } from './App.styled';
 
-export class App extends React.Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
+const contactArray = [
+  { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+  { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+  { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+  { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+];
 
-  componentDidMount() {
-    // Під час завантаження застосунку зчитуємо контакти з localStorage (якщо вони є)
-    const storedContacts = localStorage.getItem('contacts');
-    if (storedContacts) {
-      this.setState({
-        contacts: JSON.parse(storedContacts),
-      });
-    }
-  }
+export const App = () => {
+  const [contacts, setContacts] = useState(
+    () => JSON.parse(localStorage.getItem('contacts')) ?? contactArray
+  );
+  const [filter, setFilter] = useState('');
 
-  componentDidUpdate(prevProps, prevState) {
-    // Під час оновлення стану зберігаємо контакти у localStorage
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  addContact = (name, number) => {
+  const addContact = (name, number) => {
     const contact = {
       id: nanoid(),
       name,
@@ -42,55 +31,44 @@ export class App extends React.Component {
 
     const lowerCaseName = name.toLowerCase();
 
-    if (
-      this.state.contacts.some(
-        item => item.name.toLowerCase() === lowerCaseName
-      )
-    ) {
+    if (contacts.some(item => item.name.toLowerCase() === lowerCaseName)) {
       return alert(`${contact.name} is already in contacts`);
     } else {
-      this.setState(prevState => {
-        return {
-          contacts: [...prevState.contacts, contact],
-        };
+      setContacts(prevContacts => {
+        return [...prevContacts, contact];
       });
     }
   };
 
-  deleteContact = contactId => {
-    this.setState(prevState => {
-      return {
-        contacts: prevState.contacts.filter(item => item.id !== contactId),
-      };
-    });
-  };
-
-  changeFilter = event => {
-    this.setState({
-      filter: event.target.value,
-    });
-  };
-
-  getVisibleContacts = () => {
-    return this.state.contacts.filter(contact =>
-      contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
+  const deleteContact = contactId => {
+    setContacts(prevContacts =>
+      prevContacts.filter(item => item.id !== contactId)
     );
   };
 
-  render() {
-    const vilibleContact = this.getVisibleContacts();
-    return (
-      <Wrapper>
-        <H2>Phonebook</H2>
-        <ContactForm onSubmit={this.addContact} />
+  const changeFilter = event => {
+    setFilter(event.target.value);
+  };
 
-        <H2>Contacts</H2>
-        <Filter filter={this.state.filter} onChange={this.changeFilter} />
-        <ContactList
-          vilibleContact={vilibleContact}
-          deleteContact={this.deleteContact}
-        />
-      </Wrapper>
+  const getVisibleContacts = () => {
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filter.toLowerCase())
     );
-  }
-}
+  };
+
+  const visibleContacts = getVisibleContacts();
+
+  return (
+    <Wrapper>
+      <H2>Phonebook</H2>
+      <ContactForm onSubmit={addContact} />
+
+      <H2>Contacts</H2>
+      <Filter filter={filter} onChange={changeFilter} />
+      <ContactList
+        visibleContact={visibleContacts}
+        deleteContact={deleteContact}
+      />
+    </Wrapper>
+  );
+};
